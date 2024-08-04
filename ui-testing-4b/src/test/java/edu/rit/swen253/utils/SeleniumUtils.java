@@ -155,15 +155,15 @@ public final class SeleniumUtils {
     final WebDriver driver = BrowserType.discover().buildDriver(capabilities);
     // more driver configuration
     driver.manage().window().setSize(ScreenMode.discover().getScreenSize());
-    driver.manage().timeouts().implicitlyWait(ONE_SECOND);
+    driver.manage().timeouts().implicitlyWait(FIFTEEN_SECONDS);
     driver.manage().timeouts().pageLoadTimeout(TEN_SECONDS);
     //
     return driver;
   }
 
   private static final Duration ONE_SECOND = Duration.ofSeconds(1);
-  private static final Duration TEN_SECONDS = Duration.ofSeconds(10);
-
+  private static final Duration TEN_SECONDS = Duration.ofSeconds(20);
+  private static final Duration FIFTEEN_SECONDS = Duration.ofSeconds(15);
 
   /* hide ctor to complete the Utility idiom */
   private SeleniumUtils() {
