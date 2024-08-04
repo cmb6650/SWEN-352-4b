@@ -1,0 +1,293 @@
+From 03db8d8ea4a99886b5fc35d2717e2b99c4011d08 Mon Sep 17 00:00:00 2001
+From: bdbvse <bdbvse@g.rit.edu>
+Date: Thu, 1 Aug 2024 09:58:55 -0400
+Subject: [PATCH 1/2] First cut at support for multi-windows Page Object
+ management.
+
+---
+ .../edu/rit/swen253/test/AbstractWebTest.java | 46 ++++++++++++++++++-
+ .../test/maps/NavigateToRitMapsTest.java      | 23 +---------
+ .../edu/rit/swen253/utils/BrowserWindow.java  | 41 +++++++++++++++++
+ .../edu/rit/swen253/utils/SeleniumUtils.java  |  8 ++++
+ 4 files changed, 94 insertions(+), 24 deletions(-)
+ create mode 100644 src/test/java/edu/rit/swen253/utils/BrowserWindow.java
+
+diff --git a/src/test/java/edu/rit/swen253/test/AbstractWebTest.java b/src/test/java/edu/rit/swen253/test/AbstractWebTest.java
+index 24e38f3..cea7959 100644
+--- a/src/test/java/edu/rit/swen253/test/AbstractWebTest.java
++++ b/src/test/java/edu/rit/swen253/test/AbstractWebTest.java
+@@ -2,13 +2,19 @@
+ 
+ import edu.rit.swen253.page.AbstractPage;
+ import edu.rit.swen253.page.PageFactory;
++import edu.rit.swen253.utils.BrowserWindow;
+ import edu.rit.swen253.utils.SeleniumUtils;
+ import org.junit.jupiter.api.AfterAll;
+ import org.junit.jupiter.api.BeforeAll;
+ import org.junit.jupiter.api.TestInstance;
+ import org.junit.jupiter.api.TestInstance.Lifecycle;
+ 
+-import static org.junit.jupiter.api.Assertions.fail;
++import java.util.HashMap;
++import java.util.HashSet;
++import java.util.Map;
++import java.util.Set;
++
++import static org.junit.jupiter.api.Assertions.*;
+ 
+ 
+ /**
+@@ -19,6 +25,9 @@
+ @TestInstance(Lifecycle.PER_CLASS)
+ public abstract class AbstractWebTest {
+ 
++  private final Map<String, BrowserWindow> windowMap = new HashMap<>();
++  private BrowserWindow currentWindow;
++
+   protected AbstractWebTest() {
+   }
+ 
+@@ -61,7 +70,19 @@ public final void tearDown() {
+    * @return the Page Object
+    */
+   protected <P extends AbstractPage> P navigateToPage(final String pageURL, final PageFactory<P> pageFactory) {
+-    return SeleniumUtils.navigateToPage(pageURL, pageFactory);
++    final P page = SeleniumUtils.navigateToPage(pageURL, pageFactory);
++    // validate still on the initial window
++    final Set<String> windowHandles = SeleniumUtils.getWindowHandles();
++    assertEquals(1, windowHandles.size(), "Should only have one window handle");
++    final String initialWindowHandle = windowHandles.iterator().next();
++    currentWindow = new BrowserWindow(initialWindowHandle, page);
++    windowMap.put(initialWindowHandle, currentWindow);
++    //
++    return page;
++  }
++
++  public BrowserWindow getCurrentWindow() {
++    return currentWindow;
+   }
+ 
+   /**
+@@ -78,4 +99,25 @@ protected <P extends AbstractPage> P assertNewPage(final PageFactory<P> pageFact
+     }
+   }
+ 
++  /**
++   * Assert that the driver see exactly one new window (or tab) and return the Page Object for that window.
++   *
++   * @param pageFactory  the Factory function to generate the Page Object for the new window
++   * @return the Page Object
++   */
++  protected <P extends AbstractPage> P assertNewWindowAndSwitch(final PageFactory<P> pageFactory) {
++    Set<String> windowHandles = SeleniumUtils.getDriver().getWindowHandles();
++
++    // find the window handle for the new tab
++    final String newTabHandle = windowHandles.stream()
++      .filter(handle -> !handle.equals(currentWindow.getHandle()))
++      .findFirst()
++      .orElseThrow(() -> new RuntimeException("Could not find valid window handle for the new tab."));
++
++    // switch to that tab and assert that the URL of this page matches the expected maps website
++    SeleniumUtils.getDriver().switchTo().window(newTabHandle);
++
++    return pageFactory.createPage();
++  }
++
+ }
+diff --git a/src/test/java/edu/rit/swen253/test/maps/NavigateToRitMapsTest.java b/src/test/java/edu/rit/swen253/test/maps/NavigateToRitMapsTest.java
+index 47af5a1..e4fa127 100644
+--- a/src/test/java/edu/rit/swen253/test/maps/NavigateToRitMapsTest.java
++++ b/src/test/java/edu/rit/swen253/test/maps/NavigateToRitMapsTest.java
+@@ -3,14 +3,11 @@
+ import edu.rit.swen253.page.SimplePage;
+ import edu.rit.swen253.page.tiger.TigerCenterHomePage;
+ import edu.rit.swen253.test.AbstractWebTest;
+-import edu.rit.swen253.utils.SeleniumUtils;
+ import org.junit.jupiter.api.*;
+ 
+-import java.util.Set;
+ import java.util.logging.Logger;
+ 
+ import static org.junit.jupiter.api.Assertions.assertEquals;
+-import static org.junit.jupiter.api.Assertions.assertTrue;
+ 
+ 
+ /**
+@@ -24,7 +21,6 @@ public class NavigateToRitMapsTest extends AbstractWebTest {
+   private static final Logger log = Logger.getLogger(NavigateToRitMapsTest.class.getName());
+ 
+   private TigerCenterHomePage homePage;
+-  private String homePageHandle;
+ 
+   //
+   // Test sequence
+@@ -35,10 +31,6 @@ public class NavigateToRitMapsTest extends AbstractWebTest {
+   @DisplayName("First, navigate to the Tiger Center Home page.")
+   public void navigateToHomePage() {
+     homePage = navigateToPage("https://tigercenter.rit.edu", TigerCenterHomePage::new);
+-
+-    Set<String> windowHandles = SeleniumUtils.getDriver().getWindowHandles();
+-    homePageHandle = windowHandles.iterator().next();
+-    log.info(String.format("Navigated to the Tiger Center Home page: %s", homePageHandle));
+   }
+ 
+   @Test
+@@ -46,20 +38,7 @@ public void navigateToHomePage() {
+   @DisplayName("Second, click on the Maps at RIT button and validate navigation.")
+   public void navigateToMaps() {
+     homePage.selectMapsAtRIT();
+-
+-    // expect that TigerCenter window still exists
+-    Set<String> windowHandles = SeleniumUtils.getDriver().getWindowHandles();
+-    assertTrue(windowHandles.contains(homePageHandle), "Home page is not visible");
+-
+-    // find the window handle for the new tab
+-    final String newTabHandle = windowHandles.stream()
+-      .filter(handle -> !handle.equals(homePageHandle))
+-      .findFirst()
+-      .orElseThrow(() -> new RuntimeException("Could not find valid window handle for the Maps tab."));
+-
+-    // switch to that tab and assert that the URL of this page matches the expected maps website
+-    SeleniumUtils.getDriver().switchTo().window(newTabHandle);
+-    final SimplePage mapsPage = assertNewPage(SimplePage::new);
++    final SimplePage mapsPage = assertNewWindowAndSwitch(SimplePage::new);
+     assertEquals("https://maps.rit.edu/", mapsPage.getURL());
+   }
+ }
+diff --git a/src/test/java/edu/rit/swen253/utils/BrowserWindow.java b/src/test/java/edu/rit/swen253/utils/BrowserWindow.java
+new file mode 100644
+index 0000000..69ceee8
+--- /dev/null
++++ b/src/test/java/edu/rit/swen253/utils/BrowserWindow.java
+@@ -0,0 +1,41 @@
++package edu.rit.swen253.utils;
++
++import edu.rit.swen253.page.AbstractPage;
++
++import java.util.Objects;
++
++
++/**
++ * The representation of a single web browser window that includes
++ * a Selenium window handle and the Page Object that is currently
++ * displayed in this window.
++ */
++public final class BrowserWindow {
++  private final String handle;
++  private final AbstractPage page;
++
++  public BrowserWindow(String handle, AbstractPage page) {
++    this.handle = handle;
++    this.page = page;
++  }
++
++  public String getHandle() {
++    return handle;
++  }
++
++  public AbstractPage getPage() {
++    return page;
++  }
++
++  @Override
++  public boolean equals(Object o) {
++    if (this == o) return true;
++    if (!(o instanceof BrowserWindow that)) return false;
++    return Objects.equals(handle, that.handle);
++  }
++
++  @Override
++  public int hashCode() {
++    return Objects.hashCode(handle);
++  }
++}
+diff --git a/src/test/java/edu/rit/swen253/utils/SeleniumUtils.java b/src/test/java/edu/rit/swen253/utils/SeleniumUtils.java
+index 37be238..b011ec1 100644
+--- a/src/test/java/edu/rit/swen253/utils/SeleniumUtils.java
++++ b/src/test/java/edu/rit/swen253/utils/SeleniumUtils.java
+@@ -13,6 +13,7 @@
+ import org.openqa.selenium.support.ui.FluentWait;
+ 
+ import java.time.Duration;
++import java.util.Set;
+ import java.util.logging.Logger;
+ 
+ /**
+@@ -113,6 +114,13 @@ public static void executeScript(final String script, final WebElement element)
+     ((JavascriptExecutor)getDriver()).executeScript(script, element);
+   }
+ 
++  /**
++   * Get the complete {@link Set} of Selenium window handles.
++   */
++  public static Set<String> getWindowHandles() {
++    return theDriver.getWindowHandles();
++  }
++
+   //
+   // Private
+   //
+
+From 8d4fe7fc86aa7f6df9d2872a15e17c58e4246ae6 Mon Sep 17 00:00:00 2001
+From: bdbvse <bdbvse@g.rit.edu>
+Date: Thu, 1 Aug 2024 10:22:31 -0400
+Subject: [PATCH 2/2] Getting the test to work in all browsers.
+
+---
+ .../test/maps/NavigateToRitMapsTest.java      | 20 +++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/src/test/java/edu/rit/swen253/test/maps/NavigateToRitMapsTest.java b/src/test/java/edu/rit/swen253/test/maps/NavigateToRitMapsTest.java
+index e4fa127..954141f 100644
+--- a/src/test/java/edu/rit/swen253/test/maps/NavigateToRitMapsTest.java
++++ b/src/test/java/edu/rit/swen253/test/maps/NavigateToRitMapsTest.java
+@@ -5,9 +5,11 @@
+ import edu.rit.swen253.test.AbstractWebTest;
+ import org.junit.jupiter.api.*;
+ 
+-import java.util.logging.Logger;
+-
++import static edu.rit.swen253.utils.BrowserType.FIREFOX;
++import static edu.rit.swen253.utils.BrowserType.onBrowser;
++import static edu.rit.swen253.utils.TimingUtils.sleep;
+ import static org.junit.jupiter.api.Assertions.assertEquals;
++import static org.junit.jupiter.api.Assertions.assertNotNull;
+ 
+ 
+ /**
+@@ -17,8 +19,7 @@
+  * @author <a href='mailto:bdbvse@rit.edu'>Bryan Basham</a>
+  */
+ @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+-public class NavigateToRitMapsTest extends AbstractWebTest {
+-  private static final Logger log = Logger.getLogger(NavigateToRitMapsTest.class.getName());
++class NavigateToRitMapsTest extends AbstractWebTest {
+ 
+   private TigerCenterHomePage homePage;
+ 
+@@ -29,16 +30,23 @@ public class NavigateToRitMapsTest extends AbstractWebTest {
+   @Test
+   @Order(1)
+   @DisplayName("First, navigate to the Tiger Center Home page.")
+-  public void navigateToHomePage() {
++  void navigateToHomePage() {
+     homePage = navigateToPage("https://tigercenter.rit.edu", TigerCenterHomePage::new);
++    assertNotNull(homePage);
+   }
+ 
+   @Test
+   @Order(2)
+   @DisplayName("Second, click on the Maps at RIT button and validate navigation.")
+-  public void navigateToMaps() {
++  void navigateToMaps() {
+     homePage.selectMapsAtRIT();
+     final SimplePage mapsPage = assertNewWindowAndSwitch(SimplePage::new);
++
++    // there's a timing issue with Firefox (give it a second to render)
++    if (onBrowser(FIREFOX)) {
++      sleep(1);
++    }
++
+     assertEquals("https://maps.rit.edu/", mapsPage.getURL());
+   }
+ }
