@@ -125,7 +125,7 @@ public final class SeleniumUtils {
   /**
    * A short wait delay is one second long.
    */
-  private static final Duration SHORT_DELAY = Duration.ofSeconds(1);
+  private static final Duration SHORT_DELAY = Duration.ofSeconds(5);
 
   /**
    * A delay wait is five second long.
