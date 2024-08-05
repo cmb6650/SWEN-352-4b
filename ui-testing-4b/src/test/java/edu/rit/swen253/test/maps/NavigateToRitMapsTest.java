@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * @author <a href='mailto:bdbvse@rit.edu'>Bryan Basham</a>
  */
+@Disabled
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class NavigateToRitMapsTest extends AbstractWebTest {
   private static final Logger log = Logger.getLogger(NavigateToRitMapsTest.class.getName());

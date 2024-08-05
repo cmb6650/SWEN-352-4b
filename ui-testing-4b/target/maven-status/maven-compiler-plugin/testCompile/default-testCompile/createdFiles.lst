@@ -6,6 +6,7 @@ edu\rit\swen253\utils\SeleniumUtils.class
 edu\rit\swen253\page\SimplePage.class
 edu\rit\swen253\utils\BrowserType$5.class
 edu\rit\swen253\utils\WebElementConditionFactory.class
+edu\rit\swen253\test\ClassSearchTest.class
 edu\rit\swen253\utils\DomElement.class
 edu\rit\swen253\utils\BrowserType$1.class
 edu\rit\swen253\page\AbstractPage.class
