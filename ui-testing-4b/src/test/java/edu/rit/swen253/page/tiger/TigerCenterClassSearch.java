@@ -70,4 +70,11 @@ public class TigerCenterClassSearch extends AbstractPage {
         return main;
     }
 
+
+    public void  NavigatetoAdvancedSearch()  {
+        mainContentPanel.findChildBy(By.className("classSearchAdvancedSearchText")).click();
+
+    }
+
+
 }

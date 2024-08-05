@@ -87,4 +87,11 @@ public class ClassSearchTest extends AbstractWebTest {
         assertEquals(0, results.size());
     }
 
+
+    @Test
+    @Order(7)
+    @DisplayName("Seventh, Go to advanced view.")
+    public void advancedView() throws InterruptedException {
+        homePage.NavigatetoAdvancedSearch();
+    }
 }
