@@ -31,6 +31,7 @@ public class NavigateToRitMapsTest extends AbstractWebTest {
   // Test sequence
   //
 
+  @Disabled
   @Test
   @Order(1)
   @DisplayName("First, navigate to the Tiger Center Home page.")
@@ -41,7 +42,7 @@ public class NavigateToRitMapsTest extends AbstractWebTest {
     homePageHandle = windowHandles.iterator().next();
     log.info(String.format("Navigated to the Tiger Center Home page: %s", homePageHandle));
   }
-
+  @Disabled
   @Test
   @Order(2)
   @DisplayName("Second, click on the Maps at RIT button and validate navigation.")

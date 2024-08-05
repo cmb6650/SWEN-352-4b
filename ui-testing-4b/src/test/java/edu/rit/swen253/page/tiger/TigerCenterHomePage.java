@@ -48,6 +48,10 @@ public class TigerCenterHomePage extends AbstractAngularPage {
   // Private
   //
 
+  public void selectHoursAndLocations() { findButtonLink(NavButton.HOURS_AND_LOCATIONS).click();
+
+  }
+
   private enum NavButton {
     CLASS_SEARCH("Class Search"),
     GPA_CALCULATOR("GPA Calculator"),
