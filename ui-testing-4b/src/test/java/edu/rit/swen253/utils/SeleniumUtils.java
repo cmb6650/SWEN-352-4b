@@ -168,4 +168,15 @@ public final class SeleniumUtils {
   /* hide ctor to complete the Utility idiom */
   private SeleniumUtils() {
   }
+
+  public static void scrollToElement(WebElement element) {
+    JavascriptExecutor js = (JavascriptExecutor) getDriver();
+    js.executeScript("arguments[0].scrollIntoView(true);", element);
+  }
+
+  public static void clickElementUsingJs(WebElement element) {
+    JavascriptExecutor js = (JavascriptExecutor) getDriver();
+    js.executeScript("arguments[0].click();", element);
+  }
+
 }
