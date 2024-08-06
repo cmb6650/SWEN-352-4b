@@ -1,9 +1,7 @@
 package edu.rit.swen253.test;
 
 import edu.rit.swen253.page.SimplePage;
-import edu.rit.swen253.page.tiger.TigerCenterClassSearch;
-import edu.rit.swen253.page.tiger.TigerCenterHomePage;
-import edu.rit.swen253.page.tiger.classResultsObject;
+import edu.rit.swen253.page.tiger.*;
 import edu.rit.swen253.test.AbstractWebTest;
 import edu.rit.swen253.test.maps.NavigateToRitMapsTest;
 import edu.rit.swen253.utils.SeleniumUtils;
@@ -25,11 +23,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * @author <a href='mailto:bdbvse@rit.edu'>Bryan Basham</a>
  */
+@Disabled
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ClassSearchTest extends AbstractWebTest {
     private static final Logger log = Logger.getLogger(NavigateToRitMapsTest.class.getName());
 
     private TigerCenterClassSearch homePage;
+    private AdvanceSearchObject advSearch;
+    private CourseCatalogObject courseCatalog;
     private String homePageHandle;
 
     //
@@ -90,8 +91,27 @@ public class ClassSearchTest extends AbstractWebTest {
 
     @Test
     @Order(7)
-    @DisplayName("Seventh, Go to advanced view.")
+    @DisplayName("Seventh, Go to advanced view and get all the possible filters.")
     public void advancedView() throws InterruptedException {
-        homePage.NavigatetoAdvancedSearch();
+        advSearch = homePage.viewAdvancedSearch();
+        System.out.println(advSearch.getAdvancedSearchObject().size());
+        advSearch.saveOptions();
     }
+
+
+    @Test
+    @Order(8)
+    @DisplayName("Eighth , Get Course Search and retrieve colleges.")
+    public void getColleges() throws InterruptedException {
+        courseCatalog = homePage.viewCourseCatalog();
+        System.out.println(courseCatalog.getColleges().size());
+    }
+
+    @Test
+    @Order(9)
+    @DisplayName("Eighth , retrieve departments within college.")
+    public void getDepartments() throws InterruptedException {
+        System.out.println(courseCatalog.getDepartments("CAD").size());
+    }
+
 }

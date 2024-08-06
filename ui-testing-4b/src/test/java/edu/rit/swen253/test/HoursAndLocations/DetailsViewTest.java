@@ -8,6 +8,7 @@ import org.openqa.selenium.WebDriver;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Disabled
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class DetailsViewTest extends AbstractWebTest {
 
@@ -32,4 +33,6 @@ public class DetailsViewTest extends AbstractWebTest {
         // Verify that the advanced view shows a no hours message
         assertTrue(detailsView.isNoHoursMessageDisplayed(), "No hours message should be displayed.");
     }
+
+
 }

@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: edu.rit.swen253.test.HoursAndLocations.HoursLocationsTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 16.11 s -- in edu.rit.swen253.test.HoursAndLocations.HoursLocationsTest

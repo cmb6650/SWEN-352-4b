@@ -10,11 +10,6 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeUnit;
-import org.openqa.selenium.*;
-import org.openqa.selenium.firefox.FirefoxDriver;
-
 
 
 import static org.junit.jupiter.api.Assertions.fail;
@@ -71,10 +66,22 @@ public class TigerCenterClassSearch extends AbstractPage {
     }
 
 
-    public void  NavigatetoAdvancedSearch()  {
+    public AdvanceSearchObject viewAdvancedSearch() throws InterruptedException {
         mainContentPanel.findChildBy(By.className("classSearchAdvancedSearchText")).click();
-
+        //Build a view Object of advanced Search
+        Thread.sleep(10000);
+        return new AdvanceSearchObject(mainContentPanel);
     }
+
+    public CourseCatalogObject viewCourseCatalog() throws InterruptedException {
+        mainContentPanel.findChildBy(By.className("classSearchCourseCatalogText")).click();
+        //Build a view Object of advanced Search
+        Thread.sleep(10000);
+
+        return new CourseCatalogObject(mainContentPanel);
+    }
+
+
 
 
 }

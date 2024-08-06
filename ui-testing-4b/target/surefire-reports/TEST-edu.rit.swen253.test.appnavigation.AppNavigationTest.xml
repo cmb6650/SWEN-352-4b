@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="edu.rit.swen253.test.appnavigation.AppNavigationTest" time="0.003" tests="4" errors="0" skipped="4" failures="0">
+  <properties/>
+  <testcase name="navigateToHomePage" classname="edu.rit.swen253.test.appnavigation.AppNavigationTest" time="0.0">
+    <skipped message="class edu.rit.swen253.test.appnavigation.AppNavigationTest is @Disabled"/>
+  </testcase>
+  <testcase name="testHeaderNavigation(Link)" classname="edu.rit.swen253.test.appnavigation.AppNavigationTest" time="0.0">
+    <skipped message="class edu.rit.swen253.test.appnavigation.AppNavigationTest is @Disabled"/>
+  </testcase>
+  <testcase name="testFooterNavigation(Link)" classname="edu.rit.swen253.test.appnavigation.AppNavigationTest" time="0.0">
+    <skipped message="class edu.rit.swen253.test.appnavigation.AppNavigationTest is @Disabled"/>
+  </testcase>
+  <testcase name="testSidenavNavigation(Link)" classname="edu.rit.swen253.test.appnavigation.AppNavigationTest" time="0.0">
+    <skipped message="class edu.rit.swen253.test.appnavigation.AppNavigationTest is @Disabled"/>
+  </testcase>
+</testsuite>
